@@ -1,34 +1,34 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM === ì¸ì í™•ì¸ ===
+REM === ÀÎÀÚ È®ÀÎ ===
 if "%~1"=="" (
-    echo [ERROR] CSV íŒŒì¼ ê²½ë¡œë¥¼ ì¸ìë¡œ ì…ë ¥í•˜ì„¸ìš”.
-    echo ì˜ˆ: check_telnet.bat C:\path\to\servers.csv
+    echo [ERROR] CSV ÆÄÀÏ °æ·Î¸¦ ÀÎÀÚ·Î ÀÔ·ÂÇÏ¼¼¿ä.
+    echo ¿¹: check_telnet.bat C:\path\to\servers.csv
     exit /b 1
 )
 
 set "CSV_FILE=%~1"
 
-REM === CSV íŒŒì¼ ì¡´ì¬ í™•ì¸ ===
+REM === CSV ÆÄÀÏ Á¸Àç È®ÀÎ ===
 if not exist "%CSV_FILE%" (
-    echo [ERROR] ì§€ì •í•œ CSV íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤: %CSV_FILE%
+    echo [ERROR] ÁöÁ¤ÇÑ CSV ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù: %CSV_FILE%
     exit /b 1
 )
 
-REM === MariaDB ì ‘ì† ì •ë³´ ===
+REM === MariaDB Á¢¼Ó Á¤º¸ ===
 set DB_HOST=localhost
 set DB_USER=guest
 set DB_PASS=9999
 set DB_NAME=etcdb
 
-REM === í˜„ì¬ PCì˜ IP ì£¼ì†Œ ê°€ì ¸ì˜¤ê¸° ===
-for /f "tokens=2 delims=:" %%I in ('ipconfig ^| findstr /c:"IPv4 ì£¼ì†Œ" /c:"IPv4 Address"') do (
+REM === ÇöÀç PCÀÇ IP ÁÖ¼Ò °¡Á®¿À±â ===
+for /f "tokens=2 delims=:" %%I in ('ipconfig ^| findstr /c:"IPv4 ÁÖ¼Ò" /c:"IPv4 Address"') do (
     for /f "delims= " %%J in ("%%I") do set "MY_IP=%%J"
 )
-echo [INFO] í˜„ì¬ PCì˜ IP ì£¼ì†Œ: %MY_IP%
+echo [INFO] ÇöÀç PCÀÇ IP ÁÖ¼Ò: %MY_IP%
 
-REM === CSV íŒŒì¼ ì½ê¸° ë° telnet í…ŒìŠ¤íŠ¸ ===
+REM === CSV ÆÄÀÏ ÀĞ±â ¹× telnet Å×½ºÆ® ===
 for /f "skip=1 tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
     set HOSTNAME=%%A
     set IP=%%B
@@ -39,7 +39,7 @@ for /f "skip=1 tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
     echo.
     echo [INFO] Checking !IP!:!PORT!...
 
-    REM PowerShellì„ í†µí•´ telnet í…ŒìŠ¤íŠ¸ ë° ì—ëŸ¬ ë©”ì‹œì§€ ì¶”ì¶œ
+    REM PowerShellÀ» ÅëÇØ telnet Å×½ºÆ® ¹× ¿¡·¯ ¸Ş½ÃÁö ÃßÃâ
     for /f "delims=" %%X in ('powershell -Command "try { $r=Test-NetConnection -ComputerName '!IP!' -Port !PORT! -ErrorAction Stop; if ($r.TcpTestSucceeded) { exit 0 } else { Write-Error 'TCP failed'; exit 1 } } catch { Write-Output $_.Exception.Message; exit 2 }" 2^>^&1') do (
         set "ERRMSG=%%X"
     )
@@ -47,22 +47,22 @@ for /f "skip=1 tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
     if !errorlevel! EQU 0 (
         set STATUS=success
         set "ERRMSG="
-        echo [SUCCESS] !IP!:!PORT! ì—°ê²°ë¨
+        echo [SUCCESS] !IP!:!PORT! ¿¬°áµÊ
     ) else (
         set STATUS=fail
-        echo [FAIL] !IP!:!PORT! ì—°ê²° ì‹¤íŒ¨
+        echo [FAIL] !IP!:!PORT! ¿¬°á ½ÇÆĞ
         echo [ERROR MSG] !ERRMSG!
     )
 
-    REM ì—ëŸ¬ ë©”ì‹œì§€ì˜ ì‘ì€ë”°ì˜´í‘œ ì´ìŠ¤ì¼€ì´í”„
+    REM ¿¡·¯ ¸Ş½ÃÁöÀÇ ÀÛÀºµû¿ÈÇ¥ ÀÌ½ºÄÉÀÌÇÁ
     set "ERRMSG=!ERRMSG:'=''!"
 
-    REM DBì— ì§ì ‘ ì‚½ì…
+    REM DB¿¡ Á÷Á¢ »ğÀÔ
     mysql -h %DB_HOST% -u %DB_USER% -p%DB_PASS% -e ^
     "INSERT INTO %DB_NAME%.servers_connect_his (user_pc_ip, server_ip, port, connect_method, return_code, return_desc) VALUES ('%MY_IP%', '!IP!', !PORT!, 'telnet', '%STATUS%', '!ERRMSG!');"
 )
 
 echo.
-echo [INFO] ëª¨ë“  ì„œë²„ ì ê²€ ë° DB ì…ë ¥ ì™„ë£Œ
+echo [INFO] ¸ğµç ¼­¹ö Á¡°Ë ¹× DB ÀÔ·Â ¿Ï·á
 endlocal
 pause
