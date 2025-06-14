@@ -1,36 +1,39 @@
 @echo off
 setlocal ENABLEDELAYEDEXPANSION
 
-REM === ìž…ë ¥ ì¸ìž í™•ì¸ ===
+REM === ÀÔ·Â ÀÎÀÚ È®ÀÎ ===
 if "%~1"=="" (
-    echo [ì˜¤ë¥˜] CSV íŒŒì¼ ê²½ë¡œê°€ í•„ìš”í•©ë‹ˆë‹¤.
+    echo [¿À·ù] CSV ÆÄÀÏ °æ·Î°¡ ÇÊ¿äÇÕ´Ï´Ù.
     exit /b 1
 )
 if "%~2"=="" (
-    echo [ì˜¤ë¥˜] ì›ê²© MSSQL ì ‘ì† IDê°€ í•„ìš”í•©ë‹ˆë‹¤.
+    echo [¿À·ù] ¿ø°Ý MSSQL Á¢¼Ó ID°¡ ÇÊ¿äÇÕ´Ï´Ù.
     exit /b 1
 )
 if "%~3"=="" (
-    echo [ì˜¤ë¥˜] ì›ê²© MSSQL ì ‘ì† Passwordê°€ í•„ìš”í•©ë‹ˆë‹¤.
+    echo [¿À·ù] ¿ø°Ý MSSQL Á¢¼Ó Password°¡ ÇÊ¿äÇÕ´Ï´Ù.
     exit /b 1
 )
 
 set "CSV_FILE=%~1"
-set "DB_USER=%~2"
-set "DB_PASS=%~3"
-set "LOCAL_DB=your_local_mariadb_db"
-set "LOCAL_DB_USER=your_local_user"
-set "LOCAL_DB_PASS=your_local_password"
-set "LOCAL_DB_HOST=localhost"
+set "TARGET_DB_USER=%~2"
+set "TARGET_DB_PASS=%~3"
+set DB_HOST=localhost
+set DB_USER=guest
+set DB_PASS=9999
+set DB_NAME=etcdb
 
-REM === í˜„ìž¬ PC IP ê°€ì ¸ì˜¤ê¸° ===
+REM === ÇöÀç PC IP °¡Á®¿À±â ===
 for /f "tokens=2 delims=:" %%A in ('ipconfig ^| findstr /i "IPv4"') do (
     for /f "tokens=* delims= " %%B in ("%%A") do (
         set "MY_IP=%%B"
     )
 )
 
-REM === CSV ì½ê¸° ===
+echo [INFO] ÇöÀç PCÀÇ IP ÁÖ¼Ò: %MY_IP%
+echo [INFO] CSV ÆÄÀÏ °æ·Î : %CSV_FILE%
+
+REM === CSV ÀÐ±â ===
 for /f "tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
     set "TARGET_IP=%%A"
     set "TARGET_PORT=%%B"
@@ -39,8 +42,8 @@ for /f "tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
     set "STATUS=success"
     set "ERRMSG="
 
-    REM === SQLCMD ì ‘ì† í…ŒìŠ¤íŠ¸ ===
-    sqlcmd -S !TARGET_IP!,!TARGET_PORT! -d !TARGET_DB! -U %DB_USER% -P %DB_PASS% -Q "SELECT 1" > nul 2>err.txt
+    REM === SQLCMD Á¢¼Ó Å×½ºÆ® ===
+    sqlcmd -S !TARGET_IP!,!TARGET_PORT! -d !TARGET_DB! -U %TARGET_DB_USER% -P %TARGET_DB_PASS% -Q "SELECT 1" > nul 2>err.txt
 
     if !errorlevel! NEQ 0 (
         set "STATUS=fail"
@@ -51,13 +54,13 @@ for /f "tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
 
     del err.txt > nul 2>&1
 
-    REM DBì— 1ê±´ì”© ì¦‰ì‹œ ì‚½ìž…
+    REM DB¿¡ 1°Ç¾¿ Áï½Ã »ðÀÔ
     mysql -h %DB_HOST% -u %DB_USER% -p%DB_PASS% -e ^
     "INSERT INTO %DB_NAME%.servers_connect_his (user_pc_ip, server_ip, port, connect_method, db_name, db_user, return_code, return_desc) VALUES ('%MY_IP%', '!TARGET_IP!', !TARGET_PORT!, 'db_connect', '!TARGET_DB!','%DB_USER%', '!STATUS!', '!ERRMSG!');"
 
-    echo [ê²°ê³¼] !TARGET_IP!:!TARGET_PORT! => !STATUS!
+    echo [°á°ú] !TARGET_IP!:!TARGET_PORT! => !STATUS!
 )
 
-REM === ì •ë¦¬ ===
+REM === Á¤¸® ===
 del temp.sql > nul 2>&1
 endlocal
