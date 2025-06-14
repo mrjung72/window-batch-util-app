@@ -1,35 +1,35 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM === ÀÎÀÚ È®ÀÎ ===
+REM === ì¸ì í™•ì¸ ===
 if "%~1"=="" (
-    echo [ERROR] CSV ÆÄÀÏ °æ·Î¸¦ ÀÎÀÚ·Î ÀÔ·ÂÇÏ¼¼¿ä.
-    echo ¿¹: check_telnet.bat C:\path\to\servers.csv
+    echo [ERROR] CSV íŒŒì¼ ê²½ë¡œë¥¼ ì¸ìë¡œ ì…ë ¥í•˜ì„¸ìš”.
+    echo ì˜ˆ: check_telnet.bat C:\path\to\servers.csv
     exit /b 1
 )
 
 set "CSV_FILE=%~1"
 
-REM === CSV ÆÄÀÏ Á¸Àç È®ÀÎ ===
+REM === CSV íŒŒì¼ ì¡´ì¬ í™•ì¸ ===
 if not exist "%CSV_FILE%" (
-    echo [ERROR] ÁöÁ¤ÇÑ CSV ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù: %CSV_FILE%
+    echo [ERROR] ì§€ì •í•œ CSV íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤: %CSV_FILE%
     exit /b 1
 )
 
-REM === MariaDB Á¢¼Ó Á¤º¸ ===
+REM === MariaDB ì ‘ì† ì •ë³´ ===
 set DB_HOST=localhost
 set DB_USER=guest
 set DB_PASS=9999
 set DB_NAME=etcdb
 
-REM === ÇöÀç PCÀÇ IP ÁÖ¼Ò °¡Á®¿À±â ===
-for /f "tokens=2 delims=:" %%I in ('ipconfig ^| findstr /c:"IPv4 ÁÖ¼Ò" /c:"IPv4 Address"') do (
+REM === í˜„ì¬ PCì˜ IP ì£¼ì†Œ ê°€ì ¸ì˜¤ê¸° ===
+for /f "tokens=2 delims=:" %%I in ('ipconfig ^| findstr /c:"IPv4 ì£¼ì†Œ" /c:"IPv4 Address"') do (
     for /f "delims= " %%J in ("%%I") do set "MY_IP=%%J"
 )
-echo [INFO] ÇöÀç PCÀÇ IP ÁÖ¼Ò: %MY_IP%
-echo [INFO] CSV ÆÄÀÏ °æ·Î : %CSV_FILE%
+echo [INFO] í˜„ì¬ PCì˜ IP ì£¼ì†Œ: %MY_IP%
+echo [INFO] CSV íŒŒì¼ ê²½ë¡œ : %CSV_FILE%
 
-REM === CSV ÆÄÀÏ ÀĞ±â ¹× telnet Å×½ºÆ® ===
+REM === CSV íŒŒì¼ ì½ê¸° ë° telnet í…ŒìŠ¤íŠ¸ ===
 for /f "skip=1 tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
     set "IP=%%A"
     set "PORT=%%B"
@@ -47,19 +47,19 @@ for /f "skip=1 tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
     if !errorlevel! EQU 0 (
         set STATUS=success
         set "ERRMSG="
-        echo [SUCCESS] !IP!:!PORT! !HOSTNAME! ¿¬°áµÊ
+        echo [SUCCESS] !IP!:!PORT! !HOSTNAME! ì—°ê²°ë¨
     ) else (
         set STATUS=fail
-        echo [FAIL] !IP!:!PORT! !HOSTNAME! ¿¬°á ½ÇÆĞ
+        echo [FAIL] !IP!:!PORT! !HOSTNAME! ì—°ê²° ì‹¤íŒ¨
         echo [ERROR MSG] !ERRMSG!
     )
 
-    REM DB¿¡ 1°Ç¾¿ Áï½Ã »ğÀÔ
+    REM DBì— 1ê±´ì”© ì¦‰ì‹œ ì‚½ì…
     mysql -h %DB_HOST% -u %DB_USER% -p%DB_PASS% -e ^
     "INSERT INTO %DB_NAME%.servers_connect_his (user_pc_ip, server_ip, port, connect_method, return_code, return_desc) VALUES ('%MY_IP%', '!IP!', !PORT!, 'telnet', '!STATUS!', '!ERRMSG!');"
 )
 
 echo.
-echo [INFO] ¸ğµç ¼­¹ö Á¡°Ë ¹× DB ÀÔ·Â ¿Ï·á
+echo [INFO] ëª¨ë“  ì„œë²„ ì ê²€ ë° DB ì…ë ¥ ì™„ë£Œ
 endlocal
 pause
