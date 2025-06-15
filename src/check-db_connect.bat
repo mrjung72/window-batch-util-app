@@ -1,17 +1,17 @@
 @echo off
 setlocal ENABLEDELAYEDEXPANSION
 
-REM === ÀÔ·Â ÀÎÀÚ È®ÀÎ ===
+REM === ìž…ë ¥ ì¸ìž í™•ì¸ ===
 if "%~1"=="" (
-    echo [¿À·ù] CSV ÆÄÀÏ °æ·Î°¡ ÇÊ¿äÇÕ´Ï´Ù.
+    echo [ì˜¤ë¥˜] CSV íŒŒì¼ ê²½ë¡œê°€ í•„ìš”í•©ë‹ˆë‹¤.
     exit /b 1
 )
 if "%~2"=="" (
-    echo [¿À·ù] ¿ø°Ý MSSQL Á¢¼Ó ID°¡ ÇÊ¿äÇÕ´Ï´Ù.
+    echo [ì˜¤ë¥˜] ì›ê²© MSSQL ì ‘ì† IDê°€ í•„ìš”í•©ë‹ˆë‹¤.
     exit /b 1
 )
 if "%~3"=="" (
-    echo [¿À·ù] ¿ø°Ý MSSQL Á¢¼Ó Password°¡ ÇÊ¿äÇÕ´Ï´Ù.
+    echo [ì˜¤ë¥˜] ì›ê²© MSSQL ì ‘ì† Passwordê°€ í•„ìš”í•©ë‹ˆë‹¤.
     exit /b 1
 )
 
@@ -23,17 +23,17 @@ set DB_USER=guest
 set DB_PASS=9999
 set DB_NAME=etcdb
 
-REM === ÇöÀç PC IP °¡Á®¿À±â ===
+REM === í˜„ìž¬ PC IP ê°€ì ¸ì˜¤ê¸° ===
 for /f "tokens=2 delims=:" %%A in ('ipconfig ^| findstr /i "IPv4"') do (
     for /f "tokens=* delims= " %%B in ("%%A") do (
         set "MY_IP=%%B"
     )
 )
 
-echo [INFO] ÇöÀç PCÀÇ IP ÁÖ¼Ò: %MY_IP%
-echo [INFO] CSV ÆÄÀÏ °æ·Î : %CSV_FILE%
+echo [INFO] í˜„ìž¬ PCì˜ IP ì£¼ì†Œ: %MY_IP%
+echo [INFO] CSV íŒŒì¼ ê²½ë¡œ : %CSV_FILE%
 
-REM === CSV ÀÐ±â ===
+REM === CSV ì½ê¸° ===
 for /f "tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
     set "TARGET_IP=%%A"
     set "TARGET_PORT=%%B"
@@ -42,7 +42,7 @@ for /f "tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
     set "STATUS=success"
     set "ERRMSG="
 
-    REM === SQLCMD Á¢¼Ó Å×½ºÆ® ===
+    REM === SQLCMD ì ‘ì† í…ŒìŠ¤íŠ¸ ===
     sqlcmd -S !TARGET_IP!,!TARGET_PORT! -d !TARGET_DB! -U %TARGET_DB_USER% -P %TARGET_DB_PASS% -Q "SELECT 1" > nul 2>err.txt
 
     if !errorlevel! NEQ 0 (
@@ -54,13 +54,13 @@ for /f "tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
 
     del err.txt > nul 2>&1
 
-    REM DB¿¡ 1°Ç¾¿ Áï½Ã »ðÀÔ
+    REM DBì— 1ê±´ì”© ì¦‰ì‹œ ì‚½ìž…
     mysql -h %DB_HOST% -u %DB_USER% -p%DB_PASS% -e ^
     "INSERT INTO %DB_NAME%.servers_connect_his (user_pc_ip, server_ip, port, connect_method, db_name, db_user, return_code, return_desc) VALUES ('%MY_IP%', '!TARGET_IP!', !TARGET_PORT!, 'db_connect', '!TARGET_DB!','%DB_USER%', '!STATUS!', '!ERRMSG!');"
 
-    echo [°á°ú] !TARGET_IP!:!TARGET_PORT! => !STATUS!
+    echo [ê²°ê³¼] !TARGET_IP!:!TARGET_PORT! => !STATUS!
 )
 
-REM === Á¤¸® ===
+REM === ì •ë¦¬ ===
 del temp.sql > nul 2>&1
 endlocal
