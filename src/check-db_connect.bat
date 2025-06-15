@@ -4,17 +4,14 @@ setlocal ENABLEDELAYEDEXPANSION
 REM === 입력 인자 확인 ===
 if "%~1"=="" (
     echo [오류] CSV 파일 경로가 필요합니다.
-    echo ex) check-db_connect.bat C:\path\to\servers.csv {원격DB_접속계정ID} {원격DB_접속계정Password}
     exit /b 1
 )
 if "%~2"=="" (
     echo [오류] 원격 MSSQL 접속 ID가 필요합니다.
-    echo ex) check-db_connect.bat C:\path\to\servers.csv {원격DB_접속계정ID} {원격DB_접속계정Password}
     exit /b 1
 )
 if "%~3"=="" (
     echo [오류] 원격 MSSQL 접속 Password가 필요합니다.
-    echo ex) check-db_connect.bat C:\path\to\servers.csv {원격DB_접속계정ID} {원격DB_접속계정Password}
     exit /b 1
 )
 
@@ -64,7 +61,7 @@ for /f "tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
     del err.txt > nul 2>&1
 
     REM DB에 1건씩 즉시 삽입
-    mysql -h %DB_HOST% -u %DB_USER% -p%DB_PASS% -e ^
+    ..\mariadb-client\mysql -h %DB_HOST% -u %DB_USER% -p%DB_PASS% -e ^
     "INSERT INTO %DB_NAME%.servers_connect_his (user_pc_ip, server_ip, port, connect_method, db_name, db_user, return_code, return_desc) VALUES ('%MY_IP%', '!TARGET_IP!', !TARGET_PORT!, 'db_connect', '!TARGET_DB!','%DB_USER%', '!STATUS!', '!ERRMSG!');"
 
     echo [결과] !TARGET_IP!:!TARGET_PORT! => !STATUS!
