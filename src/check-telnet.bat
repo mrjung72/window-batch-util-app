@@ -60,6 +60,6 @@ for /f "skip=1 tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
 )
 
 echo.
-echo [INFO] 모든 서버 점검 및 DB 입력 완료
+echo [INFO] 서버 점검 완료
 endlocal
 pause

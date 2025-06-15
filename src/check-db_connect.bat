@@ -4,14 +4,17 @@ setlocal ENABLEDELAYEDEXPANSION
 REM === 입력 인자 확인 ===
 if "%~1"=="" (
     echo [오류] CSV 파일 경로가 필요합니다.
+    echo ex) check-db_connect.bat C:\path\to\servers.csv {원격DB_접속계정ID} {원격DB_접속계정Password}
     exit /b 1
 )
 if "%~2"=="" (
     echo [오류] 원격 MSSQL 접속 ID가 필요합니다.
+    echo ex) check-db_connect.bat C:\path\to\servers.csv {원격DB_접속계정ID} {원격DB_접속계정Password}
     exit /b 1
 )
 if "%~3"=="" (
     echo [오류] 원격 MSSQL 접속 Password가 필요합니다.
+    echo ex) check-db_connect.bat C:\path\to\servers.csv {원격DB_접속계정ID} {원격DB_접속계정Password}
     exit /b 1
 )
 
@@ -22,6 +25,12 @@ set DB_HOST=localhost
 set DB_USER=guest
 set DB_PASS=9999
 set DB_NAME=etcdb
+
+REM === CSV 파일 존재 확인 ===
+if not exist "%CSV_FILE%" (
+    echo [ERROR] 지정한 CSV 파일이 존재하지 않습니다: %CSV_FILE%
+    exit /b 1
+)
 
 REM === 현재 PC IP 가져오기 ===
 for /f "tokens=2 delims=:" %%A in ('ipconfig ^| findstr /i "IPv4"') do (
@@ -61,6 +70,7 @@ for /f "tokens=1,2,3 delims=," %%A in (%CSV_FILE%) do (
     echo [결과] !TARGET_IP!:!TARGET_PORT! => !STATUS!
 )
 
-REM === 정리 ===
-del temp.sql > nul 2>&1
+echo.
+echo [INFO] DB서버 점검 완료
 endlocal
+pause
